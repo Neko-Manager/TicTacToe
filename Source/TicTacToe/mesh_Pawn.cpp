@@ -87,24 +87,23 @@ Amesh_Pawn::Amesh_Pawn()
 	//Objects[7]->SetRelativeLocation(FVector(-200.f, 0.f, 0.f));
 	//Objects[8]->SetRelativeLocation(FVector(-200.f, 200.f, 0.f));
 
+	float OffsetY = 0;
+	float OffsetX = 0;
+
 	for (int i = NULL; i < 3; i++)
 	{
-		float OffsetY = -200;
-		float OffsetX = 200;
 
 		Objects[i]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
 
 		for (int j = NULL; j < 3; j++)
 		{
-			OffsetX += 200;
 
 			Objects[j]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
-
-			OffsetY -= 200;
+			OffsetX += 200;
 		}
-
+		OffsetY += 200;
 	}
-
+	
 
 
 	//Setting start integer fro TurnCounter
