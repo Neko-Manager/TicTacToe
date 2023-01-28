@@ -87,21 +87,31 @@ Amesh_Pawn::Amesh_Pawn()
 	//Objects[7]->SetRelativeLocation(FVector(-200.f, 0.f, 0.f));
 	//Objects[8]->SetRelativeLocation(FVector(-200.f, 200.f, 0.f));
 
-	float OffsetY = 0;
-	float OffsetX = 0;
 
+	//Star position.
+	float OffsetY = -200.f;
+	float OffsetX = -200.f;
+
+	//Loop for y-Offset
 	for (int i = NULL; i < 3; i++)
 	{
 
 		Objects[i]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
 
+		//Loop for x-Offset; 3 
 		for (int j = NULL; j < 3; j++)
 		{
+			//Updating index ,i, so Objects still know the amount of iterations per line.
+			i++;
+			Objects[i]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
 
-			Objects[j]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
-			OffsetX += 200;
+			//Updating Offset, so the Offset is correctly moved for the three iterations per y-value.
+			OffsetX += 200.f;
 		}
-		OffsetY += 200;
+
+		OffsetX = -200.f;
+		OffsetY -= 200.f;
+		
 	}
 	
 
