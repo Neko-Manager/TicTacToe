@@ -69,4 +69,10 @@ public:
 	TArray<bool> ObjectStatus;
 
 	void TurnManager(int ObjectIndex);
+
+
+	void WinCondition();
+	TArray<bool> redCounter;
+	TArray<bool> blueCounter;
+	bool Won{};
 };

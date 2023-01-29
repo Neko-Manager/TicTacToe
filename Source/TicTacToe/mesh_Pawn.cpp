@@ -23,17 +23,6 @@ Amesh_Pawn::Amesh_Pawn()
 		Objects[i] = CreateDefaultSubobject<UStaticMeshComponent>(FName(TEXT("Object_") + FString::FromInt(i)), false);
 	}
 
-
-	/*Objects[0] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_1"));
-	Objects[1] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_2"));
-	Objects[2] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_3"));
-	Objects[3] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_4"));
-	Objects[4] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_5"));
-	Objects[5] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_6"));
-	Objects[6] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_7"));
-	Objects[7] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_8"));
-	Objects[8] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Object_9"));*/
-
 	////////////////////////////////////////////////////////////////////////////////////////
 
 	//Object 4 ("Middle one as root")
@@ -68,57 +57,49 @@ Amesh_Pawn::Amesh_Pawn()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(Objects[4]);
 	SpringArm->TargetArmLength = 500.f;
-	SpringArm->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f));
+	SpringArm->SetRelativeRotation(FRotator(-90.f, -90.f, 0.f));
 
 	//Initializing the camera and attaching it to brick 4.
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	//Arranging the Objects in a 3 x 3 formation.
-	//Objects[0]->SetRelativeLocation(FVector(200.f, -200.f, 0.f));
-	//Objects[1]->SetRelativeLocation(FVector(200.f, 0.f, 0.f));
-	//Objects[2]->SetRelativeLocation(FVector(200.f, 200.f, 0.f));
-
-	//Objects[3]->SetRelativeLocation(FVector(0.f, -200.f, 0.f));
-	//Objects[4]->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
-	//Objects[5]->SetRelativeLocation(FVector(0.f, 200.f, 0.f));
-
-	//Objects[6]->SetRelativeLocation(FVector(-200.f, -200.f, 0.f));
-	//Objects[7]->SetRelativeLocation(FVector(-200.f, 0.f, 0.f));
-	//Objects[8]->SetRelativeLocation(FVector(-200.f, 200.f, 0.f));
-
-
+	////////////////////////////////////////////////////////////////////////////////////////
+	
 	//Star position.
 	float OffsetY = -200.f;
 	float OffsetX = -200.f;
 
 	//Loop for y-Offset
-	for (int i = NULL; i < 3; i++)
+	for (int i = NULL; i < Objects.Num(); i++)
 	{
 
 		Objects[i]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
 
 		//Loop for x-Offset; 3 
-		for (int j = NULL; j < 3; j++)
+		for (int j = NULL; j < 2; j++)
 		{
 			//Updating index ,i, so Objects still know the amount of iterations per line.
+			OffsetX += 200.f;
 			i++;
 			Objects[i]->SetRelativeLocation(FVector(OffsetX, OffsetY, 0.f));
 
 			//Updating Offset, so the Offset is correctly moved for the three iterations per y-value.
-			OffsetX += 200.f;
 		}
 
 		OffsetX = -200.f;
-		OffsetY -= 200.f;
+		OffsetY += 200.f;
 		
 	}
-	
-
 
 	//Setting start integer fro TurnCounter
 	TurnCounter = 0;
+
+	//Initializing booleans. 
 	ObjectStatus.Init(NULL, 9);
+	redCounter.Init(NULL, 9);
+	blueCounter.Init(NULL, 9);
+
+
 
 	//Autopossesing player so the camera is fixed.
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -127,19 +108,23 @@ Amesh_Pawn::Amesh_Pawn()
 // Called when the game starts or when spawned
 void Amesh_Pawn::BeginPlay()
 {
-	Super::BeginPlay();
-
-	for (int i = NULL; i < 9; i++)
+	if (Won == false)
 	{
-		Objects[i]->SetMaterial(0, White);
+		Super::BeginPlay();
+
+		for (int i = NULL; i < 9; i++)
+		{
+			Objects[i]->SetMaterial(0, White);
+		}
 	}
+	
 }
 
 // Called every frame
 void Amesh_Pawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	Won = true;
 }
 
 // Called to bind functionality to input
@@ -203,9 +188,10 @@ void Amesh_Pawn::NinePressed()
 	TurnManager(8);
 }
 
-void Amesh_Pawn::TurnManager(int brickIndex)
+void Amesh_Pawn::TurnManager(int ObjectIndex)
 {
-	if (ObjectStatus[brickIndex] == true)
+
+	if (ObjectStatus[ObjectIndex] == true)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("That Brick is already taken ^_^"));
 		return;
@@ -213,16 +199,52 @@ void Amesh_Pawn::TurnManager(int brickIndex)
 
 	if (TurnCounter % 2 == 0)
 	{
-		Objects[brickIndex]->SetMaterial(0, Blue);
+		Objects[ObjectIndex]->SetMaterial(0, Blue);
+		blueCounter[ObjectIndex] = true;
 	}
 
 	else if (TurnCounter % 2 == 1)
 	{
-		Objects[brickIndex]->SetMaterial(0, Red);
+		Objects[ObjectIndex]->SetMaterial(0, Red);
+		redCounter[ObjectIndex] = true;
 	}
 
 	//Cycling turns so the code updates if given criteria is met.
-	ObjectStatus[brickIndex] = true;
+	ObjectStatus[ObjectIndex] = true;
 	TurnCounter++;
 
+}
+
+void Amesh_Pawn::WinCondition()
+{
+	//Setting start integer fro TurnCounter
+
+	if( 
+		blueCounter[0] && blueCounter[1] && blueCounter[2] || 
+		blueCounter[0] && blueCounter[3] && blueCounter[6] || 
+		blueCounter[0] && blueCounter[1] && blueCounter[2] || 
+		blueCounter[2] && blueCounter[5] && blueCounter[8] || 
+		blueCounter[0] && blueCounter[4] && blueCounter[8] ||
+		blueCounter[2] && blueCounter[4] && blueCounter[6] == true
+		)
+	{
+		Won = true;
+		UE_LOG(LogTemp, Warning, TEXT("Blue won ^_^"));
+		
+	}
+
+	else if (
+		redCounter[0] && redCounter[1] && redCounter[2] ||
+		redCounter[0] && redCounter[3] && redCounter[6] ||
+		redCounter[0] && redCounter[1] && redCounter[2] ||
+		redCounter[2] && redCounter[5] && redCounter[8] ||
+		redCounter[0] && redCounter[4] && redCounter[8] ||
+		redCounter[2] && redCounter[4] && redCounter[6] == true
+		)
+	{
+		Won = true;
+		UE_LOG(LogTemp, Warning, TEXT("Red won ^_^"));
+		
+	}
+	TurnCounter++;
 }
