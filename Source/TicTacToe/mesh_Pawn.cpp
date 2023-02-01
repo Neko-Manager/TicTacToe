@@ -156,8 +156,6 @@ void Amesh_Pawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction("r", IE_Pressed, this, &Amesh_Pawn::RestartGame);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-
 //For respective key pressed. turn manager will increase by one. 
 void Amesh_Pawn::OnePressed()
 {
@@ -206,20 +204,33 @@ void Amesh_Pawn::NinePressed()
 
 void Amesh_Pawn::RestartGame()
 {
+		Super::BeginPlay();
+		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Emerald, "You restarted");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, "Blue`s turn");
 
-	Super::Restart();
-	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Emerald, "You restarted");
-	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, "Blue`s turn");
+		//Setting start integer fro TurnCounter.
+		TurnCounter = 0;
+
+		//Initializing booleans. 
+		ObjectStatus.Init(NULL, 9);
+		redCounter.Init(NULL, 9);
+		blueCounter.Init(NULL, 9);
+
+
+		GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Emerald, "Welcome to TicTacToe");
+		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Blue, "Press the mouse-left click, then Blue will start");
+
+		for (int i = NULL; i < 9; i++)
+		{
+			Objects[i]->SetMaterial(0, White);
+		}
 
 }
-
-
-////////////////////////////////////////////////////////////////////////////////////////
 
 //Managing turns between player with given conditions.
 void Amesh_Pawn::TurnManager(int ObjectIndex)
 {
-	if (Won != true && Draw != true) 
+	if (Won != true && Draw != true)
 	{
 		if (ObjectStatus[ObjectIndex] == true)
 		{
@@ -265,7 +276,7 @@ void Amesh_Pawn::WinCondition()
 		{
 			Won = true;
 			UE_LOG(LogTemp, Warning, TEXT("Blue won ^_^"));
-			GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Blue, "Blue won ^_^");
+			GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Blue, "Blue won ^_^");
 
 		}
 
@@ -280,7 +291,7 @@ void Amesh_Pawn::WinCondition()
 		{
 			Won = true;
 			UE_LOG(LogTemp, Warning, TEXT("Red won ^_^"));
-			GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Red, "Red won ^_^");
+			GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Red, "Red won ^_^");
 		}
 }
 
@@ -290,7 +301,7 @@ void Amesh_Pawn::DrawCondition()
 	{
 		Draw = true;
 		UE_LOG(LogTemp, Warning, TEXT("Draw ^_^"));
-		GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Cyan, "It`s a draw ^_^");
+		GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Cyan, "It`s a draw ^_^");
 	}
 }
 
