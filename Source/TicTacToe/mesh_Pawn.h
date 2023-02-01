@@ -63,6 +63,10 @@ public:
 	void EightPressed();
 	void NinePressed();
 
+	void RestartGame();
+	bool Won{};
+	bool Draw{};
+
 	//Turn management.
 	int TurnCounter;
 
@@ -72,7 +76,8 @@ public:
 
 
 	void WinCondition();
+	void DrawCondition();
 	TArray<bool> redCounter;
 	TArray<bool> blueCounter;
-	bool Won{};
+
 };

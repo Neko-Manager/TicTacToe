@@ -6,8 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include <UObject/ConstructorHelpers.h>
+
 #include "Containers/Array.h"
 #include "Components/StaticMeshComponent.h"
+
 
 // Sets default values
 Amesh_Pawn::Amesh_Pawn()
@@ -16,6 +18,7 @@ Amesh_Pawn::Amesh_Pawn()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Objects.Init(NULL, 9);
+	
 
 	for (int i = NULL; i < 9; i++)
 	{
@@ -91,7 +94,9 @@ Amesh_Pawn::Amesh_Pawn()
 		
 	}
 
-	//Setting start integer fro TurnCounter
+	////////////////////////////////////////////////////////////////////////////////////////
+	
+	//Setting start integer fro TurnCounter.
 	TurnCounter = 0;
 
 	//Initializing booleans. 
@@ -99,35 +104,42 @@ Amesh_Pawn::Amesh_Pawn()
 	redCounter.Init(NULL, 9);
 	blueCounter.Init(NULL, 9);
 
-
-
+	////////////////////////////////////////////////////////////////////////////////////////
+	
 	//Autopossesing player so the camera is fixed.
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
-// Called when the game starts or when spawned
+// Called when the game starts or when spawned.
 void Amesh_Pawn::BeginPlay()
 {
-	if (Won == false)
+
+	if (Won != true && Draw != true)
 	{
 		Super::BeginPlay();
+
+		GEngine->AddOnScreenDebugMessage(0,10.f, FColor::Emerald, "Welcome to TicTacToe");
+		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Blue, "Press the mouse-left click, then Blue will start");
 
 		for (int i = NULL; i < 9; i++)
 		{
 			Objects[i]->SetMaterial(0, White);
 		}
 	}
-	
+
 }
 
-// Called every frame
+// Called every frame.
 void Amesh_Pawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	Won = true;
+
+	//Setting start integer fro TurnCounter
+	WinCondition();
+	DrawCondition();
 }
 
-// Called to bind functionality to input
+// Called to bind "key" pressed to voids for usage later.
 void Amesh_Pawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -141,8 +153,12 @@ void Amesh_Pawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction("7", IE_Pressed, this, &Amesh_Pawn::SevenPressed);
 	PlayerInputComponent->BindAction("8", IE_Pressed, this, &Amesh_Pawn::EightPressed);
 	PlayerInputComponent->BindAction("9", IE_Pressed, this, &Amesh_Pawn::NinePressed);
+	PlayerInputComponent->BindAction("r", IE_Pressed, this, &Amesh_Pawn::RestartGame);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+
+//For respective key pressed. turn manager will increase by one. 
 void Amesh_Pawn::OnePressed()
 {
 	TurnManager(0);
@@ -188,63 +204,94 @@ void Amesh_Pawn::NinePressed()
 	TurnManager(8);
 }
 
-void Amesh_Pawn::TurnManager(int ObjectIndex)
+void Amesh_Pawn::RestartGame()
 {
 
-	if (ObjectStatus[ObjectIndex] == true)
+	Super::Restart();
+	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Emerald, "You restarted");
+	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, "Blue`s turn");
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//Managing turns between player with given conditions.
+void Amesh_Pawn::TurnManager(int ObjectIndex)
+{
+	if (Won != true && Draw != true) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("That Brick is already taken ^_^"));
-		return;
+		if (ObjectStatus[ObjectIndex] == true)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("That Brick is already taken ^_^"));
+			GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Green, "That Brick is already taken ^_^");
+			return;
+		}
+
+		if (TurnCounter % 2 == 0)
+		{
+			Objects[ObjectIndex]->SetMaterial(0, Blue);
+			blueCounter[ObjectIndex] = true;
+			GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Blue, "Blue`s turn.");
+			GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "Red`s next.");
+
+		}
+
+		else if (TurnCounter % 2 == 1)
+		{
+			Objects[ObjectIndex]->SetMaterial(0, Red);
+			redCounter[ObjectIndex] = true;
+			GEngine->AddOnScreenDebugMessage(0, 3.f, FColor::Red, "Red Turn");
+			GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Emerald, "Blue`s next.");
+		}
+
+		//Cycling turns so the code updates if given criteria is met.
+		ObjectStatus[ObjectIndex] = true;
+		TurnCounter++;
 	}
-
-	if (TurnCounter % 2 == 0)
-	{
-		Objects[ObjectIndex]->SetMaterial(0, Blue);
-		blueCounter[ObjectIndex] = true;
-	}
-
-	else if (TurnCounter % 2 == 1)
-	{
-		Objects[ObjectIndex]->SetMaterial(0, Red);
-		redCounter[ObjectIndex] = true;
-	}
-
-	//Cycling turns so the code updates if given criteria is met.
-	ObjectStatus[ObjectIndex] = true;
-	TurnCounter++;
-
 }
 
 void Amesh_Pawn::WinCondition()
 {
-	//Setting start integer fro TurnCounter
+	//Checking for all the possible winning combinations for both colors.
+		if (
+			blueCounter[0] && blueCounter[1] && blueCounter[2] ||
+			blueCounter[0] && blueCounter[3] && blueCounter[6] ||
+			blueCounter[0] && blueCounter[1] && blueCounter[2] ||
+			blueCounter[2] && blueCounter[5] && blueCounter[8] ||
+			blueCounter[0] && blueCounter[4] && blueCounter[8] ||
+			blueCounter[2] && blueCounter[4] && blueCounter[6] == true
+			)
+		{
+			Won = true;
+			UE_LOG(LogTemp, Warning, TEXT("Blue won ^_^"));
+			GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Blue, "Blue won ^_^");
 
-	if( 
-		blueCounter[0] && blueCounter[1] && blueCounter[2] || 
-		blueCounter[0] && blueCounter[3] && blueCounter[6] || 
-		blueCounter[0] && blueCounter[1] && blueCounter[2] || 
-		blueCounter[2] && blueCounter[5] && blueCounter[8] || 
-		blueCounter[0] && blueCounter[4] && blueCounter[8] ||
-		blueCounter[2] && blueCounter[4] && blueCounter[6] == true
-		)
-	{
-		Won = true;
-		UE_LOG(LogTemp, Warning, TEXT("Blue won ^_^"));
-		
-	}
+		}
 
-	else if (
-		redCounter[0] && redCounter[1] && redCounter[2] ||
-		redCounter[0] && redCounter[3] && redCounter[6] ||
-		redCounter[0] && redCounter[1] && redCounter[2] ||
-		redCounter[2] && redCounter[5] && redCounter[8] ||
-		redCounter[0] && redCounter[4] && redCounter[8] ||
-		redCounter[2] && redCounter[4] && redCounter[6] == true
-		)
-	{
-		Won = true;
-		UE_LOG(LogTemp, Warning, TEXT("Red won ^_^"));
-		
-	}
-	TurnCounter++;
+		else if (
+			redCounter[0] && redCounter[1] && redCounter[2] ||
+			redCounter[0] && redCounter[3] && redCounter[6] ||
+			redCounter[0] && redCounter[1] && redCounter[2] ||
+			redCounter[2] && redCounter[5] && redCounter[8] ||
+			redCounter[0] && redCounter[4] && redCounter[8] ||
+			redCounter[2] && redCounter[4] && redCounter[6] == true
+			)
+		{
+			Won = true;
+			UE_LOG(LogTemp, Warning, TEXT("Red won ^_^"));
+			GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Red, "Red won ^_^");
+		}
 }
+
+void Amesh_Pawn::DrawCondition()
+{
+	if (Won != true && TurnCounter == 8)
+	{
+		Draw = true;
+		UE_LOG(LogTemp, Warning, TEXT("Draw ^_^"));
+		GEngine->AddOnScreenDebugMessage(0, 10.f, FColor::Cyan, "It`s a draw ^_^");
+	}
+}
+
+
