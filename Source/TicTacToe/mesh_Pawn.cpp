@@ -232,6 +232,7 @@ void Amesh_Pawn::TurnManager(int ObjectIndex)
 {
 	if (Won != true && Draw != true)
 	{
+		//Checking for the corresponding turn.
 		if (ObjectStatus[ObjectIndex] == true)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("That Brick is already taken ^_^"));
@@ -297,6 +298,7 @@ void Amesh_Pawn::WinCondition()
 
 void Amesh_Pawn::DrawCondition()
 {
+	//Creating a condition for draw.
 	if (Won != true && TurnCounter == 8)
 	{
 		Draw = true;
